@@ -7,7 +7,8 @@ const Home: NextPage = () => {
   const [input, setInput] = useState("");
   const [stocks, setStocks] = useState<string[]>([]);
   const [response, setResponse] = useState("");
-  const [animationParent] = useAutoAnimate<HTMLDivElement>();
+  const [animationStocks] = useAutoAnimate<HTMLDivElement>();
+  const [animationResponse] = useAutoAnimate<HTMLParagraphElement>();
 
   // Loads the stocks in local storage on mount
   useEffect(() => {
@@ -24,6 +25,20 @@ const Home: NextPage = () => {
       console.log("Updating local storage: ", stocks);
     }
   }, [stocks, response]);
+
+  const handleAddStockEvent = () => {
+    if (!input || input.trim().length == 0) {
+      return;
+    }
+
+    if (stocks.includes(input)) {
+      setResponse(`❌ ${input.toUpperCase()} is already being tracked!`);
+    } else {
+      setStocks([...stocks, input.toUpperCase()]);
+      setResponse(`✅ Added ${input.toUpperCase()}`);
+    }
+    setInput("");
+  };
 
   const handleDeleteCard = (stock: string, index: number) => {
     setResponse(`🗑 Removed ${stock}`);
@@ -46,32 +61,25 @@ const Home: NextPage = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-
-            if (!input || input.trim().length == 0) {
-              return;
-            }
-
-            if (stocks.includes(input)) {
-              setResponse(
-                `❌ ${input.toUpperCase()} is already being tracked!`
-              );
-            } else {
-              setStocks([...stocks, input.toUpperCase()]);
-              setResponse(`✅ Added ${input.toUpperCase()}`);
-            }
-            setInput("");
+            handleAddStockEvent();
           }}
+          className="flex flex-row justify-center mt-4"
         >
           <input
             type="text"
             placeholder="e.g., AAPL"
             value={input}
             onChange={(e) => setInput(e.currentTarget.value)}
+            className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-100 py-2 px-4 mr-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
           ></input>
-          <button>Add Stock</button>
+          <button className="shadow bg-purple-600 hover:bg-purple-500 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded">
+            Add Stock
+          </button>
         </form>
-        <p>{response}</p>
-        <div ref={animationParent}>
+        <p ref={animationResponse} className="text-center mt-4 font-mono">
+          {response}
+        </p>
+        <div ref={animationStocks} className="flex flex-wrap justify-center">
           {stocks.map((stock, index) => (
             <StockCard
               key={index}
@@ -93,12 +101,12 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
   return (
     <div className="w-96 min-h-36 bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
       <div className="flex flex-row justify-center relative">
-        <h2 className="text-center font-bold">{props.ticker}</h2>
+        <h2 className="text-center text-lg font-bold">{props.ticker}</h2>
         <button onClick={props.deleteCard} className="absolute top-0 right-0">
           ❌
         </button>
       </div>
-      <div className="flex flex-wrap justify-center items-center relative mt-4">
+      <div className="flex flex-wrap justify-center items-center relative mt-2">
         <div className="text-center ml-1 mr-2">
           <p className="font-bold">Daily High</p>
           <p className="font-bold text-2xl">
