@@ -42,7 +42,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main>
-        <h1 className="text-2xl font-bold">Stock Dashboard</h1>
+        <NavBar />
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -131,6 +131,30 @@ const getStockData = (ticker: string) => {
     dailyPercentChange: 0.1,
     currentPrice: 69.69,
   };
+};
+
+const NavBar: React.FC<{}> = () => {
+  return (
+    <nav className="bg-neutral-50 border-gray-200 px-2 sm:px-4 py-2.5 drop-shadow-sm">
+      <div className="container flex flex-wrap justify-between items-center mx-auto">
+        <span className="self-center text-xl font-semibold whitespace-nowrap">
+          Stock Dashboard
+        </span>
+        {/* <div className="hidden w-full md:block md:w-auto" id="navbar-default">
+            <ul className="flex flex-col p-4 mt-4 bg-gray-50 rounded-lg border border-gray-100 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0 md:bg-white">
+              <li>
+                <a
+                  href=""
+                  className="block py-2 pr-4 pl-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0"
+                >
+                  Sign-in With Google
+                </a>
+              </li>
+            </ul>
+          </div> */}
+      </div>
+    </nav>
+  );
 };
 
 export default Home;
