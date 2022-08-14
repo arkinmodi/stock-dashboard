@@ -91,18 +91,35 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
   const stockData = getStockData(props.ticker);
 
   return (
-    <div>
-      <h1>{props.ticker}</h1>
-      <div>
-        {stockData.currencySymbol}
-        {stockData.currentPrice}
+    <div className="w-96 min-h-36 bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
+      <div className="flex flex-row justify-center relative">
+        <h2 className="text-center font-bold">{props.ticker}</h2>
+        <button onClick={props.deleteCard} className="absolute top-0 right-0">
+          ❌
+        </button>
       </div>
-      <div>
-        {stockData.currencySymbol}
-        {stockData.opening}
+      <div className="flex flex-wrap justify-center items-center relative mt-4">
+        <div className="text-center ml-1 mr-2">
+          <p className="font-bold">Daily High</p>
+          <p className="font-bold text-2xl">
+            {stockData.currencySymbol}
+            {stockData.dailyHigh}
+          </p>
+        </div>
+        <div className="text-center ml-2 mr-2">
+          <p className="font-bold">Current Price</p>
+          <p className="font-bold text-4xl">
+            {stockData.currencySymbol}
+            {stockData.currentPrice}
+          </p>
+        </div>
+        <div className="text-center ml-2 mr-1">
+          <p className="font-bold">% Change</p>
+          <p className="font-bold text-xl">
+            {stockData.dailyPercentChange * 100}%
+          </p>
+        </div>
       </div>
-      <div>{stockData.dailyPercentChange * 100}%</div>
-      <button onClick={props.deleteCard}>❌</button>
     </div>
   );
 };
@@ -110,7 +127,7 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
 const getStockData = (ticker: string) => {
   return {
     currencySymbol: "$",
-    opening: 100,
+    dailyHigh: 100,
     dailyPercentChange: 0.1,
     currentPrice: 69.69,
   };
