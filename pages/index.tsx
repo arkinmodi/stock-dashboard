@@ -1,11 +1,13 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 const Home: NextPage = () => {
   const [input, setInput] = useState("");
   const [stocks, setStocks] = useState<string[]>([]);
   const [response, setResponse] = useState("");
+  const [animationParent] = useAutoAnimate<HTMLDivElement>();
 
   // Loads the stocks in local storage on mount
   useEffect(() => {
@@ -69,7 +71,7 @@ const Home: NextPage = () => {
           <button>Add Stock</button>
         </form>
         <p>{response}</p>
-        <div>
+        <div ref={animationParent}>
           {stocks.map((stock, index) => (
             <StockCard
               key={index}
