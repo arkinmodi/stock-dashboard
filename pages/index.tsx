@@ -11,21 +11,22 @@ const Home: NextPage = () => {
   useEffect(() => {
     const savedStocks = localStorage.getItem("stocks");
     savedStocks !== null && setStocks(JSON.parse(savedStocks));
-    console.log("Loaded from local storage?", savedStocks);
+    console.log("Loaded from local storage: ", savedStocks);
   }, []);
 
   // Updates the local storage
   useEffect(() => {
+    // Check if we are doing the initial load
     if (response !== "") {
       localStorage.setItem("stocks", JSON.stringify(stocks));
-      console.log("Updating local storage?", stocks);
+      console.log("Updating local storage: ", stocks);
     }
   }, [stocks, response]);
 
   return (
     <div>
       <Head>
-        <title>Stocks</title>
+        <title>Stocks Dashboard</title>
         <meta name="description" content="A Simple Stocks Dashboard." />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -35,6 +36,11 @@ const Home: NextPage = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+
+            if (!input || input.trim().length == 0) {
+              return;
+            }
+
             if (stocks.includes(input)) {
               setResponse(
                 `❌ ${input.toUpperCase()} is already being tracked!`
@@ -56,8 +62,19 @@ const Home: NextPage = () => {
         </form>
         <p>{response}</p>
         <ul></ul>
-        {stocks.map((stock) => (
-          <li key={stock}>{stock}</li>
+        {stocks.map((stock, index) => (
+          <li
+            key={stock}
+            onClick={() => {
+              setResponse(`🗑 Removed ${stock}`);
+              setStocks([
+                ...stocks.slice(0, index),
+                ...stocks.slice(index + 1, stocks.length),
+              ]);
+            }}
+          >
+            {stock}
+          </li>
         ))}
       </main>
     </div>
