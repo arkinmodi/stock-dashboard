@@ -3,6 +3,8 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 
+import { trpc } from "@utils/trpc";
+
 const Home: NextPage = () => {
   const [input, setInput] = useState("");
   const [stocksSet, setStocksSet] = useState(new Set<string>());
@@ -98,7 +100,25 @@ const Home: NextPage = () => {
 const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
   props
 ) => {
-  const stockData = getStockData(props.ticker);
+  const { data } = trpc.proxy.stocks.getStockData.useQuery({
+    ticker: props.ticker,
+  });
+
+  if (!data) {
+    return (
+      <div className="w-96 min-h-[150px] bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
+        <div className="flex flex-row justify-center relative">
+          <h2 className="text-center text-lg font-bold">{props.ticker}</h2>
+          <button onClick={props.deleteCard} className="absolute top-0 right-0">
+            ❌
+          </button>
+        </div>
+        <div className="flex flex-wrap justify-center items-center relative mt-5">
+          <p className="font-bold text-2xl">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-96 min-h-[150px] bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
@@ -112,42 +132,31 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
         <div className="text-center ml-1 mr-2">
           <p className="font-bold">Daily High</p>
           <p className="font-bold text-2xl">
-            {stockData.currencySymbol}
-            {stockData.dailyHigh}
+            {data.currencySymbol}
+            {data.dailyHigh}
           </p>
         </div>
         <div className="text-center ml-2 mr-2">
           <p className="font-bold">Current Price</p>
           <p className="font-bold text-4xl">
-            {stockData.currencySymbol}
-            {stockData.currentPrice}
+            {data.currencySymbol}
+            {data.currentPrice}
           </p>
         </div>
         <div className="text-center ml-2 mr-1">
           <p className="font-bold">% Change</p>
           <p
             className={`font-bold text-xl ${
-              stockData.dailyPercentChange < 0
-                ? "text-red-500"
-                : "text-green-500"
+              data.dailyPercentChange < 0 ? "text-red-500" : "text-green-500"
             }`}
           >
-            {stockData.dailyPercentChange < 0 ? "▼ " : "▲ "}
-            {stockData.dailyPercentChange * 100}%
+            {data.dailyPercentChange < 0 ? "▼ " : "▲ "}
+            {data.dailyPercentChange * 100}%
           </p>
         </div>
       </div>
     </div>
   );
-};
-
-const getStockData = (ticker: string) => {
-  return {
-    currencySymbol: "$",
-    dailyHigh: 100,
-    dailyPercentChange: 0.1,
-    currentPrice: 69.69,
-  };
 };
 
 const NavBar: React.FC<{}> = () => {
