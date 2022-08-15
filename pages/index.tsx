@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
   const [input, setInput] = useState("");
-  const [stocks, setStocks] = useState<string[]>([]);
+  const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
   const [animationStocks] = useAutoAnimate<HTMLDivElement>();
   const [animationResponse] = useAutoAnimate<HTMLParagraphElement>();
@@ -13,7 +13,8 @@ const Home: NextPage = () => {
   // Loads the stocks in local storage on mount
   useEffect(() => {
     const savedStocks = localStorage.getItem("stocks");
-    savedStocks !== null && setStocks(JSON.parse(savedStocks));
+    savedStocks !== null &&
+      setStocksSet(new Set<string>(JSON.parse(savedStocks)));
     console.log("Loaded from local storage: ", savedStocks);
   }, []);
 
@@ -21,31 +22,32 @@ const Home: NextPage = () => {
   useEffect(() => {
     // Check if we are doing the initial load
     if (response !== "") {
-      localStorage.setItem("stocks", JSON.stringify(stocks));
-      console.log("Updating local storage: ", stocks);
+      localStorage.setItem(
+        "stocks",
+        JSON.stringify(Array.from(stocksSet.values()))
+      );
+      console.log("Updating local storage: ", Array.from(stocksSet.values()));
     }
-  }, [stocks, response]);
+  }, [stocksSet, response]);
 
   const handleAddStockEvent = () => {
     if (!input || input.trim().length == 0) {
       return;
     }
 
-    if (stocks.includes(input)) {
+    if (stocksSet.has(input)) {
       setResponse(`❌ ${input.toUpperCase()} is already being tracked!`);
     } else {
-      setStocks([...stocks, input.toUpperCase()]);
+      setStocksSet(stocksSet.add(input));
       setResponse(`✅ Added ${input.toUpperCase()}`);
     }
     setInput("");
   };
 
-  const handleDeleteCard = (stock: string, index: number) => {
+  const handleDeleteCard = (stock: string) => {
     setResponse(`🗑 Removed ${stock}`);
-    setStocks([
-      ...stocks.slice(0, index),
-      ...stocks.slice(index + 1, stocks.length),
-    ]);
+    stocksSet.delete(stock);
+    setStocksSet(stocksSet);
   };
 
   return (
@@ -80,11 +82,11 @@ const Home: NextPage = () => {
           {response}
         </p>
         <div ref={animationStocks} className="flex flex-wrap justify-center">
-          {stocks.map((stock, index) => (
+          {Array.from(stocksSet.values()).map((stock, index) => (
             <StockCard
               key={index}
               ticker={stock}
-              deleteCard={() => handleDeleteCard(stock, index)}
+              deleteCard={() => handleDeleteCard(stock)}
             />
           ))}
         </div>
