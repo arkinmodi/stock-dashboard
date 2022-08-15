@@ -4,6 +4,7 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 
 import { trpc } from "@utils/trpc";
+import Image from "next/image";
 
 const Home: NextPage = () => {
   const [input, setInput] = useState("");
@@ -115,7 +116,7 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
           </button>
         </div>
         <div className="flex flex-wrap justify-center items-center relative mt-5">
-          <p className="font-bold text-2xl">Loading...</p>
+          <Image src="/three-dots.svg" width={55} height={55} alt="Loading" />
         </div>
       </div>
     );
