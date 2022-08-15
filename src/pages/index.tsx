@@ -37,11 +37,12 @@ const Home: NextPage = () => {
       return;
     }
 
-    if (stocksSet.has(input)) {
-      setResponse(`❌ ${input.toUpperCase()} is already being tracked!`);
+    const ticker = input.toUpperCase();
+    if (stocksSet.has(ticker)) {
+      setResponse(`❌ ${ticker} is already being tracked!`);
     } else {
-      setStocksSet(stocksSet.add(input));
-      setResponse(`✅ Added ${input.toUpperCase()}`);
+      setStocksSet(stocksSet.add(ticker));
+      setResponse(`✅ Added ${ticker}`);
     }
     setInput("");
   };
