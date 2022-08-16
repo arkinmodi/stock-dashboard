@@ -79,6 +79,12 @@ const Home: NextPage = () => {
 
       <main>
         <NavBar />
+        <div className="bg-yellow-500 px-2 sm:px-4 py-0.5 items-center justify-center flex flex-row">
+          <span className="text-center text-black font-mono text-sm">
+            Working Locally In Guest Mode. Cloud Saves Coming Soon.
+            {/* Working Locally In Guest Mode. Sign In To Use Cloud Saves. */}
+          </span>
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
