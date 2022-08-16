@@ -7,6 +7,9 @@ import { trpc } from "@utils/trpc";
 import Image from "next/image";
 
 const Home: NextPage = () => {
+  const gettingStartedResponse =
+    "👆 Type here to add your first stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
+
   const [input, setInput] = useState("");
   const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
@@ -16,15 +19,21 @@ const Home: NextPage = () => {
   // Loads the stocks in local storage on mount
   useEffect(() => {
     const savedStocks = localStorage.getItem("stocks");
-    savedStocks !== null &&
-      setStocksSet(new Set<string>(JSON.parse(savedStocks)));
+
+    if (savedStocks !== null) {
+      const savedStocksSet = new Set<string>(JSON.parse(savedStocks));
+      setStocksSet(savedStocksSet);
+      if (savedStocksSet.size === 0) {
+        setResponse(gettingStartedResponse);
+      }
+    }
     console.log("Loaded from local storage: ", savedStocks);
   }, []);
 
   // Updates the local storage
   useEffect(() => {
     // Check if we are doing the initial load
-    if (response !== "") {
+    if (response !== "" && response !== gettingStartedResponse) {
       localStorage.setItem(
         "stocks",
         JSON.stringify(Array.from(stocksSet.values()))
@@ -48,7 +57,7 @@ const Home: NextPage = () => {
     setInput("");
   };
 
-  const handleDeleteCard = (stock: string) => {
+  const handleDeleteCardEvent = (stock: string) => {
     setResponse(`🗑 Removed ${stock}`);
     stocksSet.delete(stock);
     setStocksSet(stocksSet);
@@ -88,7 +97,10 @@ const Home: NextPage = () => {
             Add Stock
           </button>
         </form>
-        <p ref={animationResponse} className="text-center mt-4 font-mono">
+        <p
+          ref={animationResponse}
+          className="text-center mt-4 font-mono whitespace-pre-wrap"
+        >
           {response}
         </p>
         <div ref={animationStocks} className="flex flex-wrap justify-center">
@@ -96,7 +108,7 @@ const Home: NextPage = () => {
             <StockCard
               key={stock}
               ticker={stock}
-              deleteCard={() => handleDeleteCard(stock)}
+              deleteCard={() => handleDeleteCardEvent(stock)}
               notFound={() => handleStockNotFoundEvent(stock)}
             />
           ))}
