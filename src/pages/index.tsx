@@ -123,7 +123,7 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
   }
 
   return (
-    <div className="w-96 min-h-[150px] bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
+    <div className="min-w-96 min-h-[150px] bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
       <div className="flex flex-row justify-center relative">
         <h2 className="text-center text-lg font-bold">{props.ticker}</h2>
         <button onClick={props.deleteCard} className="absolute top-0 right-0">
@@ -142,7 +142,9 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
           <p className="font-bold">Current Price</p>
           <p className="font-bold text-4xl">
             {data.currencySymbol}
-            {data.currentPrice}
+            {data.currentPrice?.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+            })}
           </p>
         </div>
         <div className="text-center ml-2 mr-1">
@@ -153,7 +155,10 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
             }`}
           >
             {data.dailyPercentChange < 0 ? "▼ " : "▲ "}
-            {data.dailyPercentChange * 100}%
+            {(data.dailyPercentChange * 100).toLocaleString("en-US", {
+              maximumFractionDigits: 2,
+            })}
+            %
           </p>
         </div>
       </div>

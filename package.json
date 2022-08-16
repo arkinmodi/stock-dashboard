@@ -14,10 +14,12 @@
     "@trpc/next": "^10.0.0-alpha.46",
     "@trpc/react": "^10.0.0-alpha.46",
     "@trpc/server": "^10.0.0-alpha.46",
+    "currency-symbol-map": "^5.1.0",
     "next": "12.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "superjson": "^1.9.1",
+    "yahoo-finance2": "^2.3.6",
     "zod": "^3.18.0"
   },
   "devDependencies": {
