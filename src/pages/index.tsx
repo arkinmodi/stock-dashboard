@@ -54,6 +54,12 @@ const Home: NextPage = () => {
     setStocksSet(stocksSet);
   };
 
+  const handleStockNotFoundEvent = (stock: string) => {
+    setResponse(`😖 Failed to find ${stock}. Removing from tracking.`);
+    stocksSet.delete(stock);
+    setStocksSet(stocksSet);
+  };
+
   return (
     <div>
       <Head>
@@ -86,11 +92,12 @@ const Home: NextPage = () => {
           {response}
         </p>
         <div ref={animationStocks} className="flex flex-wrap justify-center">
-          {Array.from(stocksSet.values()).map((stock, index) => (
+          {Array.from(stocksSet.values()).map((stock) => (
             <StockCard
-              key={index}
+              key={stock}
               ticker={stock}
               deleteCard={() => handleDeleteCard(stock)}
+              notFound={() => handleStockNotFoundEvent(stock)}
             />
           ))}
         </div>
@@ -99,28 +106,28 @@ const Home: NextPage = () => {
   );
 };
 
-const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
-  props
-) => {
-  const { data } = trpc.proxy.stocks.getStockData.useQuery({
-    ticker: props.ticker,
-  });
+const StockCard: React.FC<{
+  ticker: string;
+  deleteCard: () => void;
+  notFound: () => void;
+}> = (props) => {
+  const { data, isError, error } = trpc.proxy.stocks.getStockData.useQuery(
+    {
+      ticker: props.ticker,
+    },
+    {
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  if (!data) {
-    return (
-      <div className="w-96 min-h-[150px] bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
-        <div className="flex flex-row justify-center relative">
-          <h2 className="text-center text-lg font-bold">{props.ticker}</h2>
-          <button onClick={props.deleteCard} className="absolute top-0 right-0">
-            ❌
-          </button>
-        </div>
-        <div className="flex flex-wrap justify-center items-center relative mt-5">
-          <Image src="/three-dots.svg" width={55} height={55} alt="Loading" />
-        </div>
-      </div>
-    );
+  if (isError && error.data?.code === "NOT_FOUND") {
+    props.notFound();
   }
+
+  const failedToLoadData =
+    isError && error.data?.code == "INTERNAL_SERVER_ERROR";
 
   return (
     <div className="min-w-96 min-h-[150px] bg-neutral-50 drop-shadow rounded-xl p-3 m-4">
@@ -130,38 +137,51 @@ const StockCard: React.FC<{ ticker: string; deleteCard: () => void }> = (
           ❌
         </button>
       </div>
-      <div className="flex flex-wrap justify-center items-center relative mt-5">
-        <div className="text-center ml-1 mr-2">
-          <p className="font-bold">Daily High</p>
-          <p className="font-bold text-2xl">
-            {data.currencySymbol}
-            {data.dailyHigh}
-          </p>
+      {failedToLoadData && !data && (
+        <div className="w-96 flex flex-wrap justify-center items-center relative mt-5">
+          <p className="font-bold text-2xl">Error Loading Data</p>
         </div>
-        <div className="text-center ml-2 mr-2">
-          <p className="font-bold">Current Price</p>
-          <p className="font-bold text-4xl">
-            {data.currencySymbol}
-            {data.currentPrice?.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-            })}
-          </p>
+      )}
+      {!data && !failedToLoadData && (
+        <div className="w-96 flex flex-wrap justify-center items-center relative mt-5">
+          <Image src="/three-dots.svg" width={55} height={55} alt="Loading" />
         </div>
-        <div className="text-center ml-2 mr-1">
-          <p className="font-bold">% Change</p>
-          <p
-            className={`font-bold text-xl ${
-              data.dailyPercentChange < 0 ? "text-red-500" : "text-green-500"
-            }`}
-          >
-            {data.dailyPercentChange < 0 ? "▼ " : "▲ "}
-            {(data.dailyPercentChange * 100).toLocaleString("en-US", {
-              maximumFractionDigits: 2,
-            })}
-            %
-          </p>
+      )}
+      {data && !failedToLoadData && (
+        <div className="flex flex-wrap justify-center items-center relative mt-5">
+          <div className="text-center ml-1 mr-2">
+            <p className="font-bold">Daily High</p>
+            <p className="font-bold text-2xl">
+              {data.currencySymbol}
+              {data.dailyHigh}
+            </p>
+          </div>
+          <div className="text-center ml-2 mr-2">
+            <p className="font-bold">Current Price</p>
+            <p className="font-bold text-4xl">
+              {data.currencySymbol}
+              {data.currentPrice?.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+          <div className="text-center ml-2 mr-1">
+            <p className="font-bold">% Change</p>
+            <p
+              className={`font-bold text-xl ${
+                data.dailyPercentChange < 0 ? "text-red-500" : "text-green-500"
+              }`}
+            >
+              {data.dailyPercentChange < 0 ? "▼ " : "▲ "}
+              {data.dailyPercentChange.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              %
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
