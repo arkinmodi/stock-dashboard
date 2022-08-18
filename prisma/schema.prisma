@@ -42,6 +42,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+
+  stocks        String[]
 }
 
 model VerificationToken {
