@@ -1,11 +1,25 @@
 version: '3'
 services:
   database:
-    image: mongo:5.0
+
+    # Prisma needs a replica set to write to mongo.
+    # bitnami/mongodb allows for setting replica set with env.
+
+    # image: mongo:5.0
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: admin
+    #   MONGO_INITDB_ROOT_PASSWORD: password
+    #   MONGO_INITDB_DATABASE: stock-dashboard
+
+    # This make take bit to setup the replica set. Refernce mongodb logs for long cold start.
+    # bitnami/mongodb version > 4.4 not working with Apple Silicon
+    image: 'bitnami/mongodb:4.4'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: stock-dashboard
+      MONGODB_ADVERTISED_HOSTNAME: 127.0.0.1
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_ROOT_USER: admin
+      MONGODB_ROOT_PASSWORD: password
+      MONGODB_REPLICA_SET_KEY: replicasetkey123
     ports:
       - 27017:27017
     volumes:
