@@ -8,7 +8,7 @@ import Image from "next/image";
 
 const Home: NextPage = () => {
   const gettingStartedResponse =
-    "👆 Type here to add your first stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
+    "👆 Add your first stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
 
   const [input, setInput] = useState("");
   const [stocksSet, setStocksSet] = useState(new Set<string>());
