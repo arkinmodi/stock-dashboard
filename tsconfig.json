@@ -17,6 +17,7 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
+      "@env/*": ["src/env/*"],
       "@server/*": ["src/server/*"],
       "@utils/*": ["src/utils/*"]
     }
