@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { NextPage } from "next";
-import Head from "next/head";
 import { useEffect, useState } from "react";
 
 import { trpc } from "@utils/trpc";
@@ -71,12 +70,6 @@ const Home: NextPage = () => {
 
   return (
     <div>
-      <Head>
-        <title>Stocks Dashboard</title>
-        <meta name="description" content="A Simple Stocks Dashboard." />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <main>
         <NavBar />
         <div className="bg-yellow-500 px-2 sm:px-4 py-0.5 items-center justify-center flex flex-row">
