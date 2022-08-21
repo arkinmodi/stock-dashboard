@@ -1,14 +1,18 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { NextPage } from "next";
+import { signIn, signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
+import { getStocks, updateStocks } from "@utils/stocks";
 import { trpc } from "@utils/trpc";
 import Image from "next/image";
 
 const Home: NextPage = () => {
-  const gettingStartedResponse =
+  const GETTING_STARTED_MESSAGE =
     "👆 Add your first stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
 
+  const { data: session, status } = useSession();
   const [input, setInput] = useState("");
   const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
@@ -17,29 +21,28 @@ const Home: NextPage = () => {
 
   // Loads the stocks in local storage on mount
   useEffect(() => {
-    const savedStocks = localStorage.getItem("stocks");
+    const savedStocks = getStocks(status);
 
-    if (savedStocks !== null) {
+    if (savedStocks !== "") {
       const savedStocksSet = new Set<string>(JSON.parse(savedStocks));
       setStocksSet(savedStocksSet);
       if (savedStocksSet.size === 0) {
-        setResponse(gettingStartedResponse);
+        setResponse(GETTING_STARTED_MESSAGE);
       }
     }
+    console.log("Loading... ", status);
     console.log("Loaded from local storage: ", savedStocks);
-  }, []);
+  }, [status]);
 
   // Updates the local storage
   useEffect(() => {
     // Check if we are doing the initial load
-    if (response !== "" && response !== gettingStartedResponse) {
-      localStorage.setItem(
-        "stocks",
-        JSON.stringify(Array.from(stocksSet.values()))
-      );
+    if (response !== "" && response !== GETTING_STARTED_MESSAGE) {
+      updateStocks(status, stocksSet);
+      console.log("Saving... ", status);
       console.log("Updating local storage: ", Array.from(stocksSet.values()));
     }
-  }, [stocksSet, response]);
+  }, [stocksSet, response, status]);
 
   const handleAddStockEvent = () => {
     if (!input || input.trim().length == 0) {
