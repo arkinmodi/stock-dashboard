@@ -8,26 +8,29 @@ import { trpc } from "@utils/trpc";
 
 const LOCAL_STORAGE_KEY = "stocks";
 const GETTING_STARTED_MESSAGE =
-  "👆 Add a stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
+  "👆 Add your first stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
 
 const Home: NextPage = () => {
   const { status } = useSession();
   const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
 
-  const { data } = trpc.proxy.user.getSavedStocks.useQuery(undefined, {
-    refetchInterval: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    retry: false,
-    enabled: status === "authenticated",
-  });
+  const { data, isLoading } = trpc.proxy.user.getSavedStocks.useQuery(
+    undefined,
+    {
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      retry: false,
+      enabled: status === "authenticated",
+    },
+  );
 
   const { mutate } = trpc.proxy.user.updateSavedStocks.useMutation({
     retry: 3,
   });
 
-  // Loads the stocks in local storage on mount
+  // Loads the stocks in on mount
   useEffect(() => {
     let savedStocks;
     if (status === "unauthenticated") {
@@ -41,14 +44,16 @@ const Home: NextPage = () => {
 
     const savedStocksSet = new Set<string>(savedStocks);
     setStocksSet(savedStocksSet);
-    if (savedStocksSet.size === 0) {
+    if (
+      savedStocksSet.size === 0 &&
+      ((status === "authenticated" && !isLoading) ||
+        status === "unauthenticated")
+    ) {
       setResponse(GETTING_STARTED_MESSAGE);
     }
-    console.log("Loading... Auth Status = ", status);
-    console.log("Loaded from storage: ", savedStocks);
-  }, [data, status]);
+  }, [data, isLoading, status]);
 
-  // Updates the local storage
+  // Updates the stocks
   useEffect(() => {
     // Check if we are doing the initial load
     if (response !== "" && response !== GETTING_STARTED_MESSAGE) {
@@ -60,9 +65,6 @@ const Home: NextPage = () => {
       } else {
         mutate({ stocks: stocksSet });
       }
-
-      console.log("Saving... Auth Status = ", status);
-      console.log("Updating storage: ", Array.from(stocksSet.values()));
     }
   }, [stocksSet, response, status, mutate]);
 
