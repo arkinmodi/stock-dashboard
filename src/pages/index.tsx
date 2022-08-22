@@ -7,11 +7,10 @@ import { useEffect, useState } from "react";
 import { trpc } from "@utils/trpc";
 
 const LOCAL_STORAGE_KEY = "stocks";
+const GETTING_STARTED_MESSAGE =
+  "👆 Add a stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
 
 const Home: NextPage = () => {
-  const GETTING_STARTED_MESSAGE =
-    "👆 Add a stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
-
   const { status } = useSession();
   const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
@@ -21,6 +20,7 @@ const Home: NextPage = () => {
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
     retry: false,
+    enabled: status === "authenticated",
   });
 
   const { mutate } = trpc.proxy.user.updateSavedStocks.useMutation({
