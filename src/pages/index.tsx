@@ -4,45 +4,69 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import { getStocks, updateStocks } from "@utils/stocks";
 import { trpc } from "@utils/trpc";
-import Image from "next/image";
+
+const LOCAL_STORAGE_KEY = "stocks";
 
 const Home: NextPage = () => {
   const GETTING_STARTED_MESSAGE =
-    "👆 Add your first stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
+    "👆 Add a stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
 
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [input, setInput] = useState("");
   const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
   const [animationStocks] = useAutoAnimate<HTMLDivElement>();
   const [animationResponse] = useAutoAnimate<HTMLParagraphElement>();
 
+    const {data} = trpc.proxy.user.getSavedStocks.useQuery(undefined, {
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      retry: false,
+    });
+
+    const {mutate} = trpc.proxy.user.updateSavedStocks.useMutation({
+      retry: 3
+    });
+
   // Loads the stocks in local storage on mount
   useEffect(() => {
-    const savedStocks = getStocks(status);
 
-    if (savedStocks !== "") {
-      const savedStocksSet = new Set<string>(JSON.parse(savedStocks));
-      setStocksSet(savedStocksSet);
-      if (savedStocksSet.size === 0) {
-        setResponse(GETTING_STARTED_MESSAGE);
-      }
+    let savedStocks;
+    if (status === "loading" || status === "unauthenticated") {
+      savedStocks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? "[]") as string[];
+    } else {
+      savedStocks = data ?? [];
     }
-    console.log("Loading... ", status);
-    console.log("Loaded from local storage: ", savedStocks);
-  }, [status]);
+
+    const savedStocksSet = new Set<string>(savedStocks);
+    setStocksSet(savedStocksSet);
+    if (savedStocksSet.size === 0) {
+      setResponse(GETTING_STARTED_MESSAGE);
+    }
+    console.log("Loading... Auth Status = ", status);
+    console.log("Loaded from storage: ", savedStocks);
+  }, [data, status]);
 
   // Updates the local storage
   useEffect(() => {
     // Check if we are doing the initial load
     if (response !== "" && response !== GETTING_STARTED_MESSAGE) {
-      updateStocks(status, stocksSet);
-      console.log("Saving... ", status);
-      console.log("Updating local storage: ", Array.from(stocksSet.values()));
+
+      if (status === "loading" || status === "unauthenticated") {
+        localStorage.setItem(
+          LOCAL_STORAGE_KEY,
+          JSON.stringify(Array.from(stocksSet.values())),
+        );
+      } else {
+        mutate({stocks: stocksSet});
+      }
+
+      console.log("Saving... Auth Status = ", status);
+      console.log("Updating storage: ", Array.from(stocksSet.values()));
     }
-  }, [stocksSet, response, status]);
+  }, [stocksSet, response, status, mutate]);
 
   const handleAddStockEvent = () => {
     if (!input || input.trim().length == 0) {
@@ -75,12 +99,6 @@ const Home: NextPage = () => {
     <div>
       <main>
         <NavBar />
-        <div className="bg-yellow-500 px-2 sm:px-4 py-0.5 items-center justify-center flex flex-row">
-          <span className="text-center text-black font-mono text-sm">
-            Working Locally In Guest Mode. Cloud Saves Coming Soon.
-            {/* Working Locally In Guest Mode. Sign In To Use Cloud Saves. */}
-          </span>
-        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -203,26 +221,44 @@ const StockCard: React.FC<{
 };
 
 const NavBar: React.FC<{}> = () => {
+  const {data: session, status} = useSession();
   return (
-    <nav className="bg-neutral-50 border-gray-200 px-2 sm:px-4 py-2.5 drop-shadow-sm">
-      <div className="container flex flex-wrap justify-between items-center mx-auto">
-        <span className="self-center text-xl font-semibold whitespace-nowrap">
-          Stock Dashboard
-        </span>
-        {/* <div className="hidden w-full md:block md:w-auto" id="navbar-default">
-            <ul className="flex flex-col p-4 mt-4 bg-gray-50 rounded-lg border border-gray-100 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0 md:bg-white">
-              <li>
-                <a
-                  href=""
-                  className="block py-2 pr-4 pl-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0"
-                >
-                  Sign-in With Google
-                </a>
-              </li>
-            </ul>
-          </div> */}
-      </div>
-    </nav>
+    <>
+      <nav className="bg-neutral-50 border-gray-200 px-2 sm:px-4 py-2.5 drop-shadow-sm">
+        <div className="container flex flex-wrap justify-between items-center mx-auto">
+          <span className="self-center text-xl font-semibold whitespace-nowrap">
+            Stock Dashboard
+          </span>
+          <div className="hidden w-full md:block md:w-auto" id="navbar-default">
+              <ul className="flex flex-col p-2 mt-4 bg-gray-50 rounded-lg border border-gray-100 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0 md:bg-white">
+                {(status === "unauthenticated" || status === "loading") && (
+                <li>
+                  <button onClick={() => signIn()} className="flex flex-row justify-center items-center">
+                    <Image src="/google-logo.svg" height={50} width={50} alt="" />
+                    <p className="pl-2">Sign in with Google</p>
+                  </button>
+                </li>
+                )}
+                {status === "authenticated" && session && (
+                  <li>
+                    <button onClick={() => signOut()} className="flex flex-row justify-center items-center">
+                      <Image src={session.user?.image ?? ""} height={50} width={50} alt="" style={{borderRadius: 50}} />
+                      <p className="px-2">{session.user?.name}</p>
+                    </button>
+                  </li>
+                )}
+              </ul>
+              </div>
+        </div>
+      </nav>
+      {(status === "unauthenticated" || status === "loading") && (
+        <div className="bg-yellow-500 px-2 sm:px-4 py-0.5 items-center justify-center flex flex-row">
+          <span className="text-center text-black font-mono text-sm">
+              Working Locally In Guest Mode. Sign In With Google To Use Cloud Saves.
+          </span>
+        </div>
+        )}
+      </>
   );
 };
 
