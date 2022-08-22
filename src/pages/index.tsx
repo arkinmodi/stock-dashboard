@@ -13,11 +13,8 @@ const Home: NextPage = () => {
     "👆 Add a stock to your dashboard!\n(Remember to follow Yahoo Finance's Ticker Symbol Format)";
 
   const { status } = useSession();
-  const [input, setInput] = useState("");
   const [stocksSet, setStocksSet] = useState(new Set<string>());
   const [response, setResponse] = useState("");
-  const [animationStocks] = useAutoAnimate<HTMLDivElement>();
-  const [animationResponse] = useAutoAnimate<HTMLParagraphElement>();
 
   const { data } = trpc.proxy.user.getSavedStocks.useQuery(undefined, {
     refetchInterval: false,
@@ -33,11 +30,12 @@ const Home: NextPage = () => {
   // Loads the stocks in local storage on mount
   useEffect(() => {
     let savedStocks;
-    if (status === "loading" || status === "unauthenticated") {
+    if (status === "unauthenticated") {
       savedStocks = JSON.parse(
         localStorage.getItem(LOCAL_STORAGE_KEY) ?? "[]",
       ) as string[];
     } else {
+      console.log("data: ", data);
       savedStocks = data ?? [];
     }
 
@@ -68,6 +66,33 @@ const Home: NextPage = () => {
     }
   }, [stocksSet, response, status, mutate]);
 
+  return (
+    <div>
+      <main>
+        <NavBar />
+        <Dashboard
+          stocksSet={stocksSet}
+          updateStocks={setStocksSet}
+          response={response}
+          updateResponse={setResponse}
+        />
+      </main>
+    </div>
+  );
+};
+
+const Dashboard: React.FC<{
+  stocksSet: Set<string>;
+  updateStocks: (stocks: Set<string>) => void;
+  response: string;
+  updateResponse: (res: string) => void;
+}> = (props) => {
+  const [input, setInput] = useState("");
+  const [animationStocks] = useAutoAnimate<HTMLDivElement>();
+  const [animationResponse] = useAutoAnimate<HTMLParagraphElement>();
+
+  const { stocksSet } = props;
+
   const handleAddStockEvent = () => {
     if (!input || input.trim().length == 0) {
       return;
@@ -75,30 +100,29 @@ const Home: NextPage = () => {
 
     const ticker = input.toUpperCase();
     if (stocksSet.has(ticker)) {
-      setResponse(`❌ ${ticker} is already being tracked!`);
+      props.updateResponse(`❌ ${ticker} is already being tracked!`);
     } else {
-      setStocksSet(stocksSet.add(ticker));
-      setResponse(`✅ Added ${ticker}`);
+      props.updateStocks(stocksSet.add(ticker));
+      props.updateResponse(`✅ Added ${ticker}`);
     }
     setInput("");
   };
 
   const handleDeleteCardEvent = (stock: string) => {
-    setResponse(`🗑 Removed ${stock}`);
+    props.updateResponse(`🗑 Removed ${stock}`);
     stocksSet.delete(stock);
-    setStocksSet(stocksSet);
+    props.updateStocks(stocksSet);
   };
 
   const handleStockNotFoundEvent = (stock: string) => {
-    setResponse(`😖 Failed to find ${stock}. Removing from tracking.`);
+    props.updateResponse(`😖 Failed to find ${stock}. Removing from tracking.`);
     stocksSet.delete(stock);
-    setStocksSet(stocksSet);
+    props.updateStocks(stocksSet);
   };
 
   return (
     <div>
       <main>
-        <NavBar />
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -121,7 +145,7 @@ const Home: NextPage = () => {
           ref={animationResponse}
           className="mt-4 whitespace-pre-wrap text-center font-mono"
         >
-          {response}
+          {props.response}
         </p>
         <div ref={animationStocks} className="flex flex-wrap justify-center">
           {Array.from(stocksSet.values()).map((stock) => (
