@@ -38,7 +38,6 @@ const Home: NextPage = () => {
         localStorage.getItem(LOCAL_STORAGE_KEY) ?? "[]",
       ) as string[];
     } else {
-      console.log("data: ", data);
       savedStocks = data ?? [];
     }
 
