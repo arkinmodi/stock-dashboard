@@ -192,7 +192,7 @@ const StockCard: React.FC<{
     isError && error.data?.code == "INTERNAL_SERVER_ERROR";
 
   return (
-    <div className="min-w-96 m-4 min-h-[150px] rounded-xl bg-neutral-50 p-3 drop-shadow">
+    <div className="m-4 min-h-[150px] w-full rounded-xl bg-neutral-50 p-3 drop-shadow sm:w-fit">
       <div className="relative flex flex-row justify-center">
         <h2 className="text-center text-lg font-bold">{props.ticker}</h2>
         <button
@@ -213,7 +213,7 @@ const StockCard: React.FC<{
         </div>
       )}
       {data && !failedToLoadData && (
-        <div className="relative mt-5 flex flex-wrap items-center justify-center">
+        <div className="relative mt-5 flex flex-col items-center justify-center sm:flex-row">
           <div className="ml-1 mr-2 text-center">
             <p className="font-bold">Daily High</p>
             <p className="text-2xl font-bold">
@@ -250,12 +250,15 @@ const NavBar: React.FC<{}> = () => {
   return (
     <>
       <nav className="border-gray-200 bg-neutral-50 px-2 py-2.5 drop-shadow-sm sm:px-4">
-        <div className="container mx-auto flex flex-wrap items-center justify-between">
-          <span className="self-center whitespace-nowrap text-xl font-semibold">
-            Stock Dashboard
-          </span>
-          <div className="hidden w-full md:block md:w-auto" id="navbar-default">
-            <ul className="mt-4 flex flex-col rounded-lg border border-gray-100 bg-gray-50 p-2 md:mt-0 md:flex-row md:space-x-8 md:border-0 md:bg-white md:text-sm md:font-medium">
+        <div className="container mx-auto flex flex-wrap items-center justify-center gap-4 sm:justify-between">
+          <div className="flex flex-row items-center gap-2">
+            <Image src="/logo.png" alt="" height={32} width={32} />
+            <span className="self-center whitespace-nowrap text-xl font-semibold">
+              Stock Dashboard
+            </span>
+          </div>
+          <div className="w-full md:block md:w-auto">
+            <ul className="flex flex-wrap justify-center rounded-lg sm:px-2 sm:py-1">
               {(status === "unauthenticated" || status === "loading") && (
                 <li>
                   <button
@@ -268,7 +271,9 @@ const NavBar: React.FC<{}> = () => {
                       width={50}
                       alt=""
                     />
-                    <p className="pl-2">Sign in with Google</p>
+                    <span className="pl-2 font-medium">
+                      Sign in with Google
+                    </span>
                   </button>
                 </li>
               )}
@@ -285,7 +290,9 @@ const NavBar: React.FC<{}> = () => {
                       alt=""
                       style={{ borderRadius: 50 }}
                     />
-                    <p className="px-2">{session.user?.name}</p>
+                    <span className="px-2 font-medium">
+                      {session.user?.name}
+                    </span>
                   </button>
                 </li>
               )}
@@ -294,7 +301,7 @@ const NavBar: React.FC<{}> = () => {
         </div>
       </nav>
       {(status === "unauthenticated" || status === "loading") && (
-        <div className="flex flex-row items-center justify-center bg-yellow-500 px-2 py-0.5 sm:px-4">
+        <div className="flex flex-row items-center justify-center bg-yellow-500 px-2 py-0.5 drop-shadow-sm sm:px-4">
           <span className="text-center font-mono text-sm text-black">
             Working Locally In Guest Mode. Sign In With Google To Use Cloud
             Saves.
