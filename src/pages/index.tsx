@@ -262,7 +262,7 @@ const NavBar: React.FC<{}> = () => {
               {(status === "unauthenticated" || status === "loading") && (
                 <li>
                   <button
-                    onClick={() => signIn()}
+                    onClick={() => signIn("google")}
                     className="flex flex-row items-center justify-center"
                   >
                     <Image
